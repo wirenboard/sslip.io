@@ -101,7 +101,7 @@ func dnsServer(conn *net.UDPConn, group *sync.WaitGroup) {
 			continue
 		}
 		var txtAnswers = []dnsmessage.Resource{}
-
+		var answer string = ""
 		if txt, ok := txts[strings.ToLower(query.Questions[0].Name.String())]; ok {
 			txtAnswers = append(txtAnswers, dnsmessage.Resource{
 				Header: dnsmessage.ResourceHeader{
@@ -112,6 +112,7 @@ func dnsServer(conn *net.UDPConn, group *sync.WaitGroup) {
 				},
 				Body: &dnsmessage.TXTResource{TXT: []string{txt}},
 			})
+			answer = txt
 		}
 		
 		reply := dnsmessage.Message{
@@ -134,7 +135,7 @@ func dnsServer(conn *net.UDPConn, group *sync.WaitGroup) {
 			log.Println("DNS: " + err.Error())
 			continue
 		}
-		log.Printf("DNS: %v.%d %s %s → \"%v\"\n", addr.IP, addr.Port, query.Questions[0].Type.String(), query.Questions[0].Name.String(), txts[query.Questions[0].Name.String()])
+		log.Printf("DNS: %v.%d %s %s → \"%v\"\n", addr.IP, addr.Port, query.Questions[0].Type.String(), query.Questions[0].Name.String(), answer)
 	}
 }
 
