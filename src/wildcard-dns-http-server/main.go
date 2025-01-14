@@ -142,7 +142,7 @@ func httpServer(group *sync.WaitGroup) {
 	log.Println("HTTP: starting up.")
 	http.HandleFunc("/", usageHandler)
 	http.HandleFunc("/update", updateTxtHandler)
-	log.Fatal("HTTP: " + http.ListenAndServe("127.0.0.1:80", nil).Error())
+	log.Fatal("HTTP: " + http.ListenAndServe("127.0.0.1:8080", nil).Error())
 }
 
 func usageHandler(w http.ResponseWriter, r *http.Request) {
