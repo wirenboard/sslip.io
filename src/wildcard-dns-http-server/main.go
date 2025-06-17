@@ -148,7 +148,7 @@ func httpServer(group *sync.WaitGroup) {
 }
 
 func usageHandler(w http.ResponseWriter, r *http.Request) {
-	_, err := fmt.Fprintln(w, `Set the TXT record: curl -X POST http://localhost/update -d  '{"txt":"Certificate Authority's validation token"}'`)
+	_, err := fmt.Fprintln(w, `Set the TXT record: curl -X POST http://localhost/update -d  '{"domain": "MyDomain", "txt":"Certificate Authority's validation token"}'`)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		log.Println("HTTP: " + err.Error())
