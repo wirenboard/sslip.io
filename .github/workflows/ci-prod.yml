@@ -31,7 +31,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build and push
+      - name: Build and push sslip
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ github.workspace }}
+          push: true
+          platforms: linux/amd64
+          tags: |
+            ghcr.io/wirenboard/sslipio:${{ env.BRANCH }}-${{ env.GIT_REVISION }}
+            ghcr.io/wirenboard/sslipio:${{ env.BRANCH }}
+            ghcr.io/wirenboard/sslipio:latest
+
+      - name: Build and push wildcard-dns-http-server
         uses: docker/build-push-action@v5
         with:
           context: ${{ github.workspace }}/src/wildcard-dns-http-server
