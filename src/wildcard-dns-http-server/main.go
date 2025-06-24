@@ -101,7 +101,7 @@ func dnsServer(conn *net.UDPConn, group *sync.WaitGroup) {
 			continue
 		}
 		var txtAnswers = []dnsmessage.Resource{}
-		var answer string = ""
+		var answer string
 		if txt, ok := txts[strings.ToLower(query.Questions[0].Name.String())]; ok {
 			txtAnswers = append(txtAnswers, dnsmessage.Resource{
 				Header: dnsmessage.ResourceHeader{
