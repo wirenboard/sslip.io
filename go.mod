@@ -5,6 +5,7 @@ go 1.22.0
 toolchain go1.23.1
 
 require (
+	github.com/gobwas/glob v0.2.3
 	github.com/onsi/ginkgo/v2 v2.22.2
 	github.com/onsi/gomega v1.36.2
 	golang.org/x/net v0.33.0

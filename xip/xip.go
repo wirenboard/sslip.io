@@ -18,6 +18,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gobwas/glob"
 	"golang.org/x/net/dns/dnsmessage"
 )
 
@@ -822,14 +823,29 @@ func IsAcmeChallenge(fqdnString string) bool {
 	return false
 }
 
+func IsDelegateDomainMatched(fqdnStringLowerCased, domain string) bool {
+        if fqdnStringLowerCased == domain {
+            return true
+        }
+
+        // the "." prevents "where.com" from being mistakenly recognized as a subdomain of "here.com"
+        if strings.HasSuffix(fqdnStringLowerCased, "."+domain) {
+            return true
+        }
+
+        if g, err := glob.Compile(domain, '.'); err == nil {
+            return g.Match(fqdnStringLowerCased)
+        }
+
+	return false;
+}
 func IsDelegated(fqdnString string) bool {
 	fqdnStringLowerCased := strings.ToLower(fqdnString)
 	for domain := range Customizations {
 		if Customizations[domain].NS == nil { // no nameserver? then it can't be delegated
 			continue
 		}
-		// the "." prevents "where.com" from being mistakenly recognized as a subdomain of "here.com"
-		if strings.HasSuffix(fqdnStringLowerCased, "."+domain) || fqdnStringLowerCased == domain {
+		if IsDelegateDomainMatched(fqdnStringLowerCased, domain) {
 			return true
 		}
 	}
@@ -848,8 +864,7 @@ func (x *Xip) NSResources(fqdnString string) []dnsmessage.NSResource {
 		if Customizations[domain].NS == nil { // no nameserver? then it can't be delegated
 			continue
 		}
-		// the "." prevents "where.com" from being mistakenly recognized as a subdomain of "here.com"
-		if strings.HasSuffix(fqdnStringLowerCased, "."+domain) || fqdnStringLowerCased == domain {
+		if IsDelegateDomainMatched(fqdnStringLowerCased, domain) {
 			return Customizations[domain].NS
 		}
 	}

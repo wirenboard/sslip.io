@@ -17,10 +17,11 @@ import (
 	"golang.org/x/net/dns/dnsmessage"
 )
 
-var txts = []string{`Set this TXT record: curl -X POST http://localhost/update -d  '{"txt":"Certificate Authority validation token"}'`}
+var txts = map[string]string{}; // map is for storing the DNS TXT record
 
 // Txt is for parsing the JSON POST to set the DNS TXT record
 type Txt struct {
+	Domain string `json:"domain"`
 	Txt string `json:"txt"`
 }
 
@@ -100,7 +101,8 @@ func dnsServer(conn *net.UDPConn, group *sync.WaitGroup) {
 			continue
 		}
 		var txtAnswers = []dnsmessage.Resource{}
-		for _, txt := range txts {
+		var answer string
+		if txt, ok := txts[strings.ToLower(query.Questions[0].Name.String())]; ok {
 			txtAnswers = append(txtAnswers, dnsmessage.Resource{
 				Header: dnsmessage.ResourceHeader{
 					Name:  query.Questions[0].Name,
@@ -110,7 +112,9 @@ func dnsServer(conn *net.UDPConn, group *sync.WaitGroup) {
 				},
 				Body: &dnsmessage.TXTResource{TXT: []string{txt}},
 			})
+			answer = txt
 		}
+		
 		reply := dnsmessage.Message{
 			Header: dnsmessage.Header{
 				ID:               query.ID,
@@ -131,7 +135,7 @@ func dnsServer(conn *net.UDPConn, group *sync.WaitGroup) {
 			log.Println("DNS: " + err.Error())
 			continue
 		}
-		log.Printf("DNS: %v.%d %s → \"%v\"\n", addr.IP, addr.Port, query.Questions[0].Type.String(), txts)
+		log.Printf("DNS: %v.%d %s %s → \"%v\"\n", addr.IP, addr.Port, query.Questions[0].Type.String(), query.Questions[0].Name.String(), answer)
 	}
 }
 
@@ -140,11 +144,11 @@ func httpServer(group *sync.WaitGroup) {
 	log.Println("HTTP: starting up.")
 	http.HandleFunc("/", usageHandler)
 	http.HandleFunc("/update", updateTxtHandler)
-	log.Fatal("HTTP: " + http.ListenAndServe(":80", nil).Error())
+	log.Fatal("HTTP: " + http.ListenAndServe("0.0.0.0:8080", nil).Error())
 }
 
 func usageHandler(w http.ResponseWriter, r *http.Request) {
-	_, err := fmt.Fprintln(w, `Set the TXT record: curl -X POST http://localhost/update -d  '{"txt":"Certificate Authority's validation token"}'`)
+	_, err := fmt.Fprintln(w, `Set the TXT record: curl -X POST http://localhost/update -d  '{"domain": "MyDomain", "txt":"Certificate Authority's validation token"}'`)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		log.Println("HTTP: " + err.Error())
@@ -182,9 +186,9 @@ func updateTxtHandler(w http.ResponseWriter, r *http.Request) {
 		log.Println("HTTP: " + err.Error())
 		return
 	}
-	log.Println("HTTP: Creating new TXT record \"" + updateTxt.Txt + "\".")
+	log.Println("HTTP: Creating new TXT record \"" + updateTxt.Txt + "\" for domain \"" + updateTxt.Domain + "\".")
 	// this is the money shot, where we create a new DNS TXT record to what was in the POST request
-	txts = append(txts, updateTxt.Txt)
+	txts[updateTxt.Domain] = updateTxt.Txt
 }
 func listLocalIPCIDRs() []string {
 	var ifaces []net.Interface

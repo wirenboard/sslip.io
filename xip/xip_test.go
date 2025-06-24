@@ -308,6 +308,7 @@ var _ = Describe("Xip", func() {
 		nsName, err = dnsmessage.NewName("1.com")
 		Expect(err).ToNot(HaveOccurred())
 		xip.Customizations["a.com"] = xip.DomainCustomization{NS: []dnsmessage.NSResource{dnsmessage.NSResource{NS: nsName}}}
+		xip.Customizations["c.*.com"] = xip.DomainCustomization{NS: []dnsmessage.NSResource{dnsmessage.NSResource{NS: nsName}}}
 		xip.Customizations["b.com"] = xip.DomainCustomization{}
 
 		When("the domain is delegated", func() {
@@ -326,10 +327,21 @@ var _ = Describe("Xip", func() {
 					Expect(xip.IsDelegated("Aa.com")).To(BeFalse())
 				})
 			})
+			When("the fqdn matches the glob wildcard in the second level", func() {
+				It("returns true", func() {
+					Expect(xip.IsDelegated("c.a.COM")).To(BeTrue())
+					Expect(xip.IsDelegated("c.b.COM")).To(BeTrue())
+				})
+			})
 		})
 		When("the domain is customized but not delegated", func() {
 			It("returns false", func() {
 				Expect(xip.IsDelegated("b.COM")).To(BeFalse())
+			})
+		})
+		When("the domain is not delegated", func() {
+			It("returns false", func() {
+				Expect(xip.IsDelegated("c.com")).To(BeFalse())
 			})
 		})
 	})
