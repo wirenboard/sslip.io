@@ -824,15 +824,18 @@ func IsAcmeChallenge(fqdnString string) bool {
 }
 
 func IsDelegateDomainMatched(fqdnStringLowerCased, domain string) bool {
-	// the "." prevents "where.com" from being mistakenly recognized as a subdomain of "here.com"
-	if strings.HasSuffix(fqdnStringLowerCased, "."+domain) || fqdnStringLowerCased == domain {
-		return true
-	} else {
-		g, err := glob.Compile(domain, '.')
-		if err == nil && g.Match(fqdnStringLowerCased) {
-			return true
-		}
-	}
+        if fqdnStringLowerCased == domain {
+            return true
+        }
+
+        // the "." prevents "where.com" from being mistakenly recognized as a subdomain of "here.com"
+        if strings.HasSuffix(fqdnStringLowerCased, "."+domain) {
+            return true
+        }
+
+        if g, err := glob.Compile(domain, '.'); err == nil {
+            return g.Match(fqdnStringLowerCased)
+        }
 
 	return false;
 }
