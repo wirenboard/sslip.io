@@ -823,7 +823,7 @@ func IsAcmeChallenge(fqdnString string) bool {
 	return false
 }
 
-func IsDelegateDomainMatched(fqdnStringLowerCased string, domain string) bool {
+func IsDelegateDomainMatched(fqdnStringLowerCased, domain string) bool {
 	// the "." prevents "where.com" from being mistakenly recognized as a subdomain of "here.com"
 	if strings.HasSuffix(fqdnStringLowerCased, "."+domain) || fqdnStringLowerCased == domain {
 		return true
